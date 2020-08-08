@@ -1,0 +1,23 @@
+{
+  "name": "jstetris",
+  "version": "1.0.0",
+  "description": "JsTetris for the browser",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "lite-server -c ./liteServerConfig/config.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://GrahamsRepos@github.com/GrahamsRepos/JsTetris.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/GrahamsRepos/JsTetris/issues"
+  },
+  "homepage": "https://github.com/GrahamsRepos/JsTetris#readme",
+  "dependencies": {
+    "lite-server": "^2.5.4"
+  }
+}
