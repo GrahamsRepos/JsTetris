@@ -1,7 +1,14 @@
 import {tetromino} from "./types";
+
+let symbol:string = '\u2584' //The blocks that make up the teromino
+let whitespacesymbol:string = '.'
+let speed:number = 300;
 let score:number = 0;
     const width:number = 10;
     const height = 20;
+
+
+
 
 
     //Tetrominos
@@ -11,6 +18,13 @@ let score:number = 0;
         [1,width+1,2*width,2*width+1],
         [width,2*width,2*width+1,2*width+2]
     ];
+    const lmirrTetromino:tetromino =[
+        [1, width+1,2*width+1,2*width+2],
+        [width,width+1,width+2,2*width],
+        [0,1,width+1,2*width+1],
+        [2,width,width+1,width+2]
+
+    ]
     const zTetromino:tetromino =[
         [width,width+1,2*width+1,2*width+2],
         [0,width,width+1,2*width+1],
@@ -37,7 +51,7 @@ let score:number = 0;
     ]
 
     let orientation = 0
-    const tetrominoesREF:tetromino[] = [lTetromino,zTetromino,tTetromino,oTetromino,iTetromino]
+    const tetrominoesREF:tetromino[] = [lTetromino,zTetromino,tTetromino,oTetromino,iTetromino,lmirrTetromino]
      let currentPosition:number = 0 //Math.abs(Math.floor(Math.random()*width-4));
     let shift = currentPosition;
     let tetrominoIndex:number =Math.floor(Math.random() * tetrominoesREF.length);
@@ -50,7 +64,7 @@ let score:number = 0;
     let noElements = width*height;
     let array:string[] = [];
     for(let i=0;i<noElements;i++){
-        array.push(' ')
+        array.push(whitespacesymbol)
     }
     const printArray = ()=>{
         console.log('\n');
@@ -84,7 +98,7 @@ let score:number = 0;
     const draw =()=>{
         //Checks if the tetromino overlaps with other tetrominos -- Create new tetramino and reset the position if it does
             currentTetromino.forEach((index, idx) => {
-                array[index + currentPosition]=`${currentColor}*\x1b[0m`;
+                array[index + currentPosition]=`${currentColor}${symbol}\x1b[0m`;
                 console.clear()
                 printArray()
             });
@@ -97,7 +111,7 @@ let score:number = 0;
     //used to undraw the teramino before drawing the new position
     const undraw =()=>{
         currentTetromino.forEach(index=>{
-            array[index + currentPosition]=' ';
+            array[index + currentPosition]=whitespacesymbol;
             console.clear()
             printArray()
         });
@@ -108,12 +122,16 @@ let score:number = 0;
         currentColor =  colors[Math.floor(Math.random()*colors.length)];
     }
 
-    // This function checks if the next down() position is overlapping with existing tetrominos
+
+
+    //--------------------------------------------------------------------------------------------------------------------
+    // Functions that are used to determine if the teromino can move , rotate , shift to it's next position or orientation
+    // --------------------------------------------------------------------------------------------------------------------
     const checkOverlapVertical = ()=>{
         let hasOverlap = false;
         let currentTerominoMap = currentTetromino.map(index=>(index+currentPosition))
         currentTetromino.forEach((index,idx)=>{
-            hasOverlap = !currentTerominoMap.includes(index+currentPosition+width) &&(typeof array[index + currentPosition+width]=== 'undefined' ||array[index + currentPosition+width].toString().includes(`*`))?true:hasOverlap;
+            hasOverlap = !currentTerominoMap.includes(index+currentPosition+width) &&(typeof array[index + currentPosition+width]=== 'undefined' ||array[index + currentPosition+width].toString().includes(symbol))?true:hasOverlap;
         });
         return hasOverlap;
     }
@@ -121,32 +139,73 @@ let score:number = 0;
         return Math.max(...currentTetromino)+currentPosition+width
     }
 
-    //todo: checks for left and right movement overlap , also for flip detection
+    let checkCanRotateRight = ()=>{
+        let checkZeroModulo = (element:number)=>element%width===0
+         return !tetrominoesREF[tetrominoIndex][orientation<3?orientation+=1:0].map(position=>(position+currentPosition)).some(checkZeroModulo);
+    }
+
+    let checkCanRotatLeft = ()=>{
+        let checkZeroModulo = (element:number)=>element%width===0
+        return !tetrominoesREF[tetrominoIndex][orientation>0?orientation-1:3].map(position=>(position+currentPosition)).some(checkZeroModulo);
+    }
+
+    let canMoveRight =()=>{
+        let hasOverlap = false;
+        let currentTerominoMap = currentTetromino.map(index=>(index+currentPosition))
+        currentTetromino.forEach((index,idx)=>{
+            hasOverlap = !currentTerominoMap.includes(index+currentPosition+1) &&(typeof array[index + currentPosition+1]=== 'undefined' ||array[index + currentPosition+1].toString().includes(symbol))?true:hasOverlap;
+        });
+        return !hasOverlap;
+    }
+
+    let canMoveLeft =() =>{
+        let hasOverlap = false;
+        let currentTerominoMap = currentTetromino.map(index=>(index+currentPosition))
+        currentTetromino.forEach((index,idx)=>{
+            hasOverlap = !currentTerominoMap.includes(index+currentPosition-1) &&(typeof array[index + currentPosition-1]=== 'undefined' ||array[index + currentPosition-1].toString().includes(symbol))?true:hasOverlap;
+        });
+        return !hasOverlap;
+    }
+
+    let hasVerticalFill =()=>{
+        let hasVerticalFill = false;
+        for(let i =0 ; i<width;i++){
+            if(array[i].toString().includes(symbol)){
+                hasVerticalFill = true;
+                break;
+            }
+        }
+        return hasVerticalFill;
+    }
 
 
 
 
-    //Make the tetromino move down every second
+   //Used to shift the teromino down
     let moveDown = async()=>{
         let overlap = checkOverlapVertical();
         if(getMaxIndex() < height*width && !checkOverlapVertical()) {
                 undraw();
                 currentPosition += width;
                 draw();
-                console.log(overlap);
-                console.log(getMostRightPosition());
-                console.log(getMostLeftPosition());
+                if(hasVerticalFill()){
+                    clearInterval(timerID);
+                }
             }
         else{
             currentPosition = Math.abs(Math.floor(Math.random()*width-4));
             randomSelectTetromino();
             undraw()
             draw();
-            console.log(overlap);
+
 
         }
 
+
     }
+
+let timerID = setInterval(moveDown,speed);
+let started = true;
 
 // readline.emitKeypressEvents(process.stdin);
 // process.stdin.setRawMode(true);
@@ -162,8 +221,7 @@ let score:number = 0;
 //         }
 // });
 
-    let timerID = setInterval(moveDown,200);
-    let started = false;
+
     // let timerId:NodeJS.Timeout;
     // if(!started){
     //         started = true;
@@ -213,47 +271,61 @@ const getMostLeftPosition =()=>{
 
 // make `process.stdin` begin emitting "keypress" events
 
+
+
 let keypress = require('keypress');
 keypress(process.stdin);
 let currentkey = ''
 //listen for key press events
 process.stdin.on('keypress', function (ch, key) {
     if (key && key.ctrl && key.name == 'c') {
+        console.clear();
         process.stdin.pause();
         process.exit();
     }else if(key.name==='up') {
         currentkey=key.name;
-        undraw()
-        if(orientation <3) {
-            orientation += 1;
-        }else{
-            orientation = 0;
+        if(checkCanRotateRight()) {
+            undraw()
+            if (orientation < 3) {
+                orientation += 1;
+            } else {
+                orientation = 0;
+            }
+            currentTetromino = tetrominoesREF[tetrominoIndex][orientation]
+            draw()
         }
-        currentTetromino =tetrominoesREF[tetrominoIndex][orientation]
-        draw()
     }else if(key.name==='down'){
-        undraw()
-        if(orientation >0) {
-            orientation = orientation - 1;
-        }else{
-            orientation = 3;
+        if(checkCanRotatLeft()) {
+            undraw()
+            if (orientation > 0) {
+                orientation = orientation - 1;
+            } else {
+                orientation = 3;
+            }
+            currentTetromino = tetrominoesREF[tetrominoIndex][orientation]
+            draw();
         }
-        currentTetromino =tetrominoesREF[tetrominoIndex][orientation]
-        draw();
     }else if(key.name==='right'){
-        if( getMostRightPosition()<width-1){
+        if( getMostRightPosition()<width-1 && canMoveRight() ){
             undraw();
             currentPosition+=1;
             draw();
 
         }
     }else if(key.name==='left'){
-        if(getMostLeftPosition()>0){
+        if(getMostLeftPosition()>0 && canMoveLeft()){
             undraw()
-            shift-=1
             currentPosition-=1;
             draw();
 
+        }
+    }else if(key.name="p"){
+        if(started){
+            clearInterval(timerID);
+            started = false;
+        }else{
+            timerID = setInterval(moveDown,speed);
+            started = true;
         }
     }
 });

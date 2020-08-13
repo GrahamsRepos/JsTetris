@@ -36,6 +36,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var symbol = '\u2584'; //The blocks that make up the teromino
+var whitespacesymbol = '.';
+var speed = 300;
 var score = 0;
 var width = 10;
 var height = 20;
@@ -45,6 +48,12 @@ var lTetromino = [
     [width, width + 1, width + 2, width * 2 + 2],
     [1, width + 1, 2 * width, 2 * width + 1],
     [width, 2 * width, 2 * width + 1, 2 * width + 2]
+];
+var lmirrTetromino = [
+    [1, width + 1, 2 * width + 1, 2 * width + 2],
+    [width, width + 1, width + 2, 2 * width],
+    [0, 1, width + 1, 2 * width + 1],
+    [2, width, width + 1, width + 2]
 ];
 var zTetromino = [
     [width, width + 1, 2 * width + 1, 2 * width + 2],
@@ -71,7 +80,7 @@ var iTetromino = [
     [width, width + 1, width + 2, width + 3]
 ];
 var orientation = 0;
-var tetrominoesREF = [lTetromino, zTetromino, tTetromino, oTetromino, iTetromino];
+var tetrominoesREF = [lTetromino, zTetromino, tTetromino, oTetromino, iTetromino, lmirrTetromino];
 var currentPosition = 0; //Math.abs(Math.floor(Math.random()*width-4));
 var shift = currentPosition;
 var tetrominoIndex = Math.floor(Math.random() * tetrominoesREF.length);
@@ -83,7 +92,7 @@ var currentColor = "\x1b[31m";
 var noElements = width * height;
 var array = [];
 for (var i = 0; i < noElements; i++) {
-    array.push(' ');
+    array.push(whitespacesymbol);
 }
 var printArray = function () {
     console.log('\n');
@@ -115,7 +124,7 @@ var randomSelectTetromino = function () {
 var draw = function () {
     //Checks if the tetromino overlaps with other tetrominos -- Create new tetramino and reset the position if it does
     currentTetromino.forEach(function (index, idx) {
-        array[index + currentPosition] = currentColor + "*\u001B[0m";
+        array[index + currentPosition] = "" + currentColor + symbol + "\u001B[0m";
         console.clear();
         printArray();
     });
@@ -127,7 +136,7 @@ var draw = function () {
 //used to undraw the teramino before drawing the new position
 var undraw = function () {
     currentTetromino.forEach(function (index) {
-        array[index + currentPosition] = ' ';
+        array[index + currentPosition] = whitespacesymbol;
         console.clear();
         printArray();
     });
@@ -136,20 +145,55 @@ var setRandomColor = function () {
     var colors = ["\x1b[31m", '\x1b[34m', '\x1b[32m', '\x1b[36m'];
     currentColor = colors[Math.floor(Math.random() * colors.length)];
 };
-// This function checks if the next down() position is overlapping with existing tetrominos
+//--------------------------------------------------------------------------------------------------------------------
+// Functions that are used to determine if the teromino can move , rotate , shift to it's next position or orientation
+// --------------------------------------------------------------------------------------------------------------------
 var checkOverlapVertical = function () {
     var hasOverlap = false;
     var currentTerominoMap = currentTetromino.map(function (index) { return (index + currentPosition); });
     currentTetromino.forEach(function (index, idx) {
-        hasOverlap = !currentTerominoMap.includes(index + currentPosition + width) && (typeof array[index + currentPosition + width] === 'undefined' || array[index + currentPosition + width].toString().includes("*")) ? true : hasOverlap;
+        hasOverlap = !currentTerominoMap.includes(index + currentPosition + width) && (typeof array[index + currentPosition + width] === 'undefined' || array[index + currentPosition + width].toString().includes(symbol)) ? true : hasOverlap;
     });
     return hasOverlap;
 };
 var getMaxIndex = function () {
     return Math.max.apply(Math, currentTetromino) + currentPosition + width;
 };
-//todo: checks for left and right movement overlap , also for flip detection
-//Make the tetromino move down every second
+var checkCanRotateRight = function () {
+    var checkZeroModulo = function (element) { return element % width === 0; };
+    return !tetrominoesREF[tetrominoIndex][orientation < 3 ? orientation += 1 : 0].map(function (position) { return (position + currentPosition); }).some(checkZeroModulo);
+};
+var checkCanRotatLeft = function () {
+    var checkZeroModulo = function (element) { return element % width === 0; };
+    return !tetrominoesREF[tetrominoIndex][orientation > 0 ? orientation - 1 : 3].map(function (position) { return (position + currentPosition); }).some(checkZeroModulo);
+};
+var canMoveRight = function () {
+    var hasOverlap = false;
+    var currentTerominoMap = currentTetromino.map(function (index) { return (index + currentPosition); });
+    currentTetromino.forEach(function (index, idx) {
+        hasOverlap = !currentTerominoMap.includes(index + currentPosition + 1) && (typeof array[index + currentPosition + 1] === 'undefined' || array[index + currentPosition + 1].toString().includes(symbol)) ? true : hasOverlap;
+    });
+    return !hasOverlap;
+};
+var canMoveLeft = function () {
+    var hasOverlap = false;
+    var currentTerominoMap = currentTetromino.map(function (index) { return (index + currentPosition); });
+    currentTetromino.forEach(function (index, idx) {
+        hasOverlap = !currentTerominoMap.includes(index + currentPosition - 1) && (typeof array[index + currentPosition - 1] === 'undefined' || array[index + currentPosition - 1].toString().includes(symbol)) ? true : hasOverlap;
+    });
+    return !hasOverlap;
+};
+var hasVerticalFill = function () {
+    var hasVerticalFill = false;
+    for (var i = 0; i < width; i++) {
+        if (array[i].toString().includes(symbol)) {
+            hasVerticalFill = true;
+            break;
+        }
+    }
+    return hasVerticalFill;
+};
+//Used to shift the teromino down
 var moveDown = function () { return __awaiter(void 0, void 0, void 0, function () {
     var overlap;
     return __generator(this, function (_a) {
@@ -158,20 +202,21 @@ var moveDown = function () { return __awaiter(void 0, void 0, void 0, function (
             undraw();
             currentPosition += width;
             draw();
-            console.log(overlap);
-            console.log(getMostRightPosition());
-            console.log(getMostLeftPosition());
+            if (hasVerticalFill()) {
+                clearInterval(timerID);
+            }
         }
         else {
             currentPosition = Math.abs(Math.floor(Math.random() * width - 4));
             randomSelectTetromino();
             undraw();
             draw();
-            console.log(overlap);
         }
         return [2 /*return*/];
     });
 }); };
+var timerID = setInterval(moveDown, speed);
+var started = true;
 // readline.emitKeypressEvents(process.stdin);
 // process.stdin.setRawMode(true);
 //
@@ -185,8 +230,6 @@ var moveDown = function () { return __awaiter(void 0, void 0, void 0, function (
 //             orientation+=1;
 //         }
 // });
-var timerID = setInterval(moveDown, 200);
-var started = false;
 // let timerId:NodeJS.Timeout;
 // if(!started){
 //         started = true;
@@ -234,45 +277,59 @@ var currentkey = '';
 //listen for key press events
 process.stdin.on('keypress', function (ch, key) {
     if (key && key.ctrl && key.name == 'c') {
+        console.clear();
         process.stdin.pause();
         process.exit();
     }
     else if (key.name === 'up') {
         currentkey = key.name;
-        undraw();
-        if (orientation < 3) {
-            orientation += 1;
+        if (checkCanRotateRight()) {
+            undraw();
+            if (orientation < 3) {
+                orientation += 1;
+            }
+            else {
+                orientation = 0;
+            }
+            currentTetromino = tetrominoesREF[tetrominoIndex][orientation];
+            draw();
         }
-        else {
-            orientation = 0;
-        }
-        currentTetromino = tetrominoesREF[tetrominoIndex][orientation];
-        draw();
     }
     else if (key.name === 'down') {
-        undraw();
-        if (orientation > 0) {
-            orientation = orientation - 1;
+        if (checkCanRotatLeft()) {
+            undraw();
+            if (orientation > 0) {
+                orientation = orientation - 1;
+            }
+            else {
+                orientation = 3;
+            }
+            currentTetromino = tetrominoesREF[tetrominoIndex][orientation];
+            draw();
         }
-        else {
-            orientation = 3;
-        }
-        currentTetromino = tetrominoesREF[tetrominoIndex][orientation];
-        draw();
     }
     else if (key.name === 'right') {
-        if (getMostRightPosition() < width - 1) {
+        if (getMostRightPosition() < width - 1 && canMoveRight()) {
             undraw();
             currentPosition += 1;
             draw();
         }
     }
     else if (key.name === 'left') {
-        if (getMostLeftPosition() > 0) {
+        if (getMostLeftPosition() > 0 && canMoveLeft()) {
             undraw();
-            shift -= 1;
             currentPosition -= 1;
             draw();
+        }
+    }
+    else if (key.name = "p") {
+        if (started) {
+            clearInterval(timerID);
+            started = false;
+        }
+        else {
+            timerID = setInterval(moveDown, speed);
+            started = true;
         }
     }
 });
