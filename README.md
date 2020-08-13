@@ -1,2 +1,3 @@
-# JsTetris
-Javascript Tetris
+# TsTetris
+Typescript Tetris
+

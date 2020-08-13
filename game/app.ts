@@ -48,16 +48,17 @@ document.addEventListener('DOMContentLoaded',()=>{
     let currentColor='blue';
 
 
+
+
     const randomSelectTetromino = ()=>{
         currentTetromino = tetrominoesREF[Math.floor(Math.random() * tetrominoesREF.length)][0]
     }
 
 
     const draw =()=>{
-        //Checks if the tetromino overlaps with other tetrominos
+        //Checks if the tetromino overlaps with other tetrominos -- Create new tetramino and reset the position if it does
         if(checkOverlap()){
             currentTetromino.forEach((index, idx) => {
-                console.log()
                 squares[index + currentPosition-width].classList.add('tetromino')
                 squares[index + currentPosition-width].style.backgroundColor = currentColor;
 
@@ -66,15 +67,17 @@ document.addEventListener('DOMContentLoaded',()=>{
             setRandomColor();
             randomSelectTetromino();
 
-        }else {
+        }
+        //Draw the new position
+        else {
             currentTetromino.forEach((index, idx) => {
-                console.log()
                 squares[index + currentPosition].classList.add('tetromino');
                 squares[index + currentPosition].style.backgroundColor = currentColor;
             });
         }
     };
 
+    //used to undraw the teramino before drawing the new position
     const undraw =()=>{
         currentTetromino.forEach(index=>{
             squares[currentPosition+index].classList.remove('tetromino');
@@ -85,7 +88,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     const setRandomColor = ()=>{
         const colors:string[] = ['red','blue','green','orange','purple']
         currentColor =  colors[Math.floor(Math.random()*colors.length)]
-        console.log(currentColor);
     }
 
     const checkOverlap = ()=>{
