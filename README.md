@@ -8,7 +8,8 @@ Two implementations of the same Tetris logic using Typescript:
 #### Commandline Tetris Version:
 * Nodejs, tested on version > 10.0.0 , see https://github.com/nvm-sh/nvm for easy node version management
 * Install dependencies by running **npm install** 
-* The entrypoint for the commandline version is in the ./game folder, to play run 
+* The entrypoint for the commandline version is in the ./game/ConsoleTetris.ts folder 
+*To play type: **npm run ConsoleTetris**  (Requies TTY terminal) -- Tested on ubuntu
 
 
 
