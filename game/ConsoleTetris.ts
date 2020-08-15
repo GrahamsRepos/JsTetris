@@ -2,39 +2,43 @@ import {tetromino,terominoOrientation} from "./types";
 
 let symbol:string = '\u2584' //The blocks that make up the teromino
 let whitespacesymbol:string = '.'
-let speed:number = 300;
+let speed:number = 400;
 let score:number = 0;
     const width:number = 10;
     const height = 20;
 
 
-
-
-
     //Tetrominos
     const lTetromino:tetromino = [
-        [1,width+1,width*2+1,2],
-        [width,width+1,width+2,width*2+2],
-        [1,width+1,2*width,2*width+1],
-        [width,2*width,2*width+1,2*width+2]
+        [width,width+1,width+2,2*width],
+        [1,width+1,2*width+1,2*width+2],
+        [width,width+1,width+2,2],
+        [0,1,width+1,2*width+1]
     ];
     const lmirrTetromino:tetromino =[
-        [1, width+1,2*width+1,2*width+2],
-        [width,width+1,width+2,2*width],
-        [0,1,width+1,2*width+1],
-        [2,width,width+1,width+2]
+        [width,width+1,width+2,2*width+2],
+        [1,2,width+1,2*width+1],
+        [0,width,width+1,width+2],
+        [1,width+1,2*width,2*width+1]
 
     ]
-    const zTetromino:tetromino =[
-        [width,width+1,2*width+1,2*width+2],
+    const sTetromino:tetromino=[
+        [width+1,width+2,2*width,2*width+1],
         [0,width,width+1,2*width+1],
         [width+1,width+2,2*width,2*width+1],
         [0,width,width+1,2*width+1]
+    ]
+    const zTetromino:tetromino =[
+        [width,width+1,2*width+1,2*width+2],
+        [1,width,width+1,2*width],
+        [width,width+1,2*width+1,2*width+2],
+        [1,width,width+1,2*width]
     ];
+
     const tTetromino:tetromino =[
-        [1,width,width+1,width+2],
-        [1,width+1,width+2,2*width+1],
         [width,width+1,width+2,2*width+1],
+        [1,width+1,width+2,2*width+1],
+        [1,width,width+1,width+2],
         [1,width,width+1,2*width+1]
     ];
     const oTetromino:tetromino = [
@@ -44,16 +48,16 @@ let score:number = 0;
         [0,1,width,width+1]
     ];
     const iTetromino:tetromino =[
+       [2*width, 2*width+1,2*width+2,2*width+3],
         [1,width+1,2*width+1,3*width+1],
-        [width,width+1,width+2,width+3],
-        [1,width+1,width*2+1,width*3+1],
-        [width,width+1,width+2,width+3]
+        [2*width, 2*width+1,2*width+2,2*width+3],
+        [1,width+1,2*width+1,3*width+1]
     ]
 
     let orientation = 0
-    const tetrominoesREF:tetromino[] = [lTetromino,zTetromino,tTetromino,oTetromino,iTetromino,lmirrTetromino]
+    const tetrominoesREF:tetromino[] = [lTetromino,zTetromino,tTetromino,oTetromino,iTetromino,lmirrTetromino,sTetromino]
      let currentPosition:0|1|2|3 = 0 //Math.abs(Math.floor(Math.random()*width-4));
-    let tetrominoIndex:number =Math.floor(Math.random() * tetrominoesREF.length);
+    let tetrominoIndex:number =4//Math.floor(Math.random() * tetrominoesREF.length);
     let currentTetromino:terominoOrientation =tetrominoesREF[tetrominoIndex][orientation]
     let currentColor:string="\x1b[31m";
 
@@ -67,7 +71,6 @@ let score:number = 0;
     }
     const printArray = ()=>{
         console.log('\n');
-        checkForCompleteRowsAndScore();
         let i = 0;
         let currRow = 0;
         while(i<noElements-1){
@@ -141,11 +144,15 @@ let score:number = 0;
     }
 
     let checkCanRotateRight = ()=>{
-        let checkZeroModulo = (element:number)=>element%width===0
-         return !tetrominoesREF[tetrominoIndex][orientation<3?orientation+=1:0].map(position=>(position+currentPosition)).some(checkZeroModulo);
+        let checkZeroModulo = (element:number)=>element%(width)===0;
+        let moduloS = tetrominoesREF[tetrominoIndex][orientation<3?orientation+1:0].map(position=>((position+currentPosition)%width))
+        let maxModulos = Math.max(...moduloS);
+        let minModulos = Math.min(...moduloS);
+        return maxModulos - minModulos < 4;
+         //return !tetrominoesREF[tetrominoIndex][orientation<3?orientation+1:0].map(position=>(position+currentPosition)).some(checkZeroModulo);
     }
 
-    let checkCanRotatLeft = ()=>{
+    let checkCanRotateLeft = ()=>{
         let checkZeroModulo = (element:number)=>element%width===0
         return !tetrominoesREF[tetrominoIndex][orientation>0?orientation-1:3].map(position=>(position+currentPosition)).some(checkZeroModulo);
     }
@@ -217,6 +224,7 @@ let score:number = 0;
             currentPosition = <0|1|2|3>Math.abs(Math.floor(Math.random()*width-4));
             randomSelectTetromino();
             undraw()
+            checkForCompleteRowsAndScore();
             draw();
 
 
@@ -286,7 +294,7 @@ process.stdin.on('keypress', function (ch, key) {
             draw()
         }
     }else if(key.name==='down'){
-        if(checkCanRotatLeft()) {
+        if(checkCanRotateLeft()) {
             undraw()
             if (orientation > 0) {
                 orientation = orientation - 1;

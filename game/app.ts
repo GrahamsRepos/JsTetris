@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
     //let timerID = setInterval(moveDown,200);
     let started = false;
-    let timerId:number;
+    let timerId:NodeJS.Timeout;
     startButton.addEventListener('click',()=>{
 
         if(!started){

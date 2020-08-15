@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "lite-server -c ./liteServerConfig/config.json"
+    "dev": "lite-server -c ./liteServerConfig/config.json",
+    "ConsoleTetris": "tsc && node ./game/ConsoleTetris.js"
   },
   "repository": {
     "type": "git",
@@ -24,6 +25,7 @@
     "readline": "^1.3.0"
   },
   "devDependencies": {
-    "@types/node": "^14.0.27"
+    "@types/node": "^14.0.27",
+    "typescript": "^3.9.7"
   }
 }

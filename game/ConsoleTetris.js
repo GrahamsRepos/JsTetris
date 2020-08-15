@@ -38,33 +38,39 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var symbol = '\u2584'; //The blocks that make up the teromino
 var whitespacesymbol = '.';
-var speed = 300;
+var speed = 400;
 var score = 0;
 var width = 10;
 var height = 20;
 //Tetrominos
 var lTetromino = [
-    [1, width + 1, width * 2 + 1, 2],
-    [width, width + 1, width + 2, width * 2 + 2],
-    [1, width + 1, 2 * width, 2 * width + 1],
-    [width, 2 * width, 2 * width + 1, 2 * width + 2]
+    [width, width + 1, width + 2, 2 * width],
+    [1, width + 1, 2 * width + 1, 2 * width + 2],
+    [width, width + 1, width + 2, 2],
+    [0, 1, width + 1, 2 * width + 1]
 ];
 var lmirrTetromino = [
-    [1, width + 1, 2 * width + 1, 2 * width + 2],
-    [width, width + 1, width + 2, 2 * width],
-    [0, 1, width + 1, 2 * width + 1],
-    [2, width, width + 1, width + 2]
+    [width, width + 1, width + 2, 2 * width + 2],
+    [1, 2, width + 1, 2 * width + 1],
+    [0, width, width + 1, width + 2],
+    [1, width + 1, 2 * width, 2 * width + 1]
 ];
-var zTetromino = [
-    [width, width + 1, 2 * width + 1, 2 * width + 2],
+var sTetromino = [
+    [width + 1, width + 2, 2 * width, 2 * width + 1],
     [0, width, width + 1, 2 * width + 1],
     [width + 1, width + 2, 2 * width, 2 * width + 1],
     [0, width, width + 1, 2 * width + 1]
 ];
+var zTetromino = [
+    [width, width + 1, 2 * width + 1, 2 * width + 2],
+    [1, width, width + 1, 2 * width],
+    [width, width + 1, 2 * width + 1, 2 * width + 2],
+    [1, width, width + 1, 2 * width]
+];
 var tTetromino = [
-    [1, width, width + 1, width + 2],
-    [1, width + 1, width + 2, 2 * width + 1],
     [width, width + 1, width + 2, 2 * width + 1],
+    [1, width + 1, width + 2, 2 * width + 1],
+    [1, width, width + 1, width + 2],
     [1, width, width + 1, 2 * width + 1]
 ];
 var oTetromino = [
@@ -74,15 +80,15 @@ var oTetromino = [
     [0, 1, width, width + 1]
 ];
 var iTetromino = [
+    [2 * width, 2 * width + 1, 2 * width + 2, 2 * width + 3],
     [1, width + 1, 2 * width + 1, 3 * width + 1],
-    [width, width + 1, width + 2, width + 3],
-    [1, width + 1, width * 2 + 1, width * 3 + 1],
-    [width, width + 1, width + 2, width + 3]
+    [2 * width, 2 * width + 1, 2 * width + 2, 2 * width + 3],
+    [1, width + 1, 2 * width + 1, 3 * width + 1]
 ];
 var orientation = 0;
-var tetrominoesREF = [lTetromino, zTetromino, tTetromino, oTetromino, iTetromino, lmirrTetromino];
+var tetrominoesREF = [lTetromino, zTetromino, tTetromino, oTetromino, iTetromino, lmirrTetromino, sTetromino];
 var currentPosition = 0; //Math.abs(Math.floor(Math.random()*width-4));
-var tetrominoIndex = Math.floor(Math.random() * tetrominoesREF.length);
+var tetrominoIndex = 4; //Math.floor(Math.random() * tetrominoesREF.length);
 var currentTetromino = tetrominoesREF[tetrominoIndex][orientation];
 var currentColor = "\x1b[31m";
 //--------------------------------------
@@ -95,7 +101,6 @@ for (var i = 0; i < noElements; i++) {
 }
 var printArray = function () {
     console.log('\n');
-    checkForCompleteRowsAndScore();
     var i = 0;
     var currRow = 0;
     while (i < noElements - 1) {
@@ -161,10 +166,14 @@ var getMaxIndex = function () {
     return Math.max.apply(Math, currentTetromino) + currentPosition + width;
 };
 var checkCanRotateRight = function () {
-    var checkZeroModulo = function (element) { return element % width === 0; };
-    return !tetrominoesREF[tetrominoIndex][orientation < 3 ? orientation += 1 : 0].map(function (position) { return (position + currentPosition); }).some(checkZeroModulo);
+    var checkZeroModulo = function (element) { return element % (width) === 0; };
+    var moduloS = tetrominoesREF[tetrominoIndex][orientation < 3 ? orientation + 1 : 0].map(function (position) { return ((position + currentPosition) % width); });
+    var maxModulos = Math.max.apply(Math, moduloS);
+    var minModulos = Math.min.apply(Math, moduloS);
+    return maxModulos - minModulos < 4;
+    //return !tetrominoesREF[tetrominoIndex][orientation<3?orientation+1:0].map(position=>(position+currentPosition)).some(checkZeroModulo);
 };
-var checkCanRotatLeft = function () {
+var checkCanRotateLeft = function () {
     var checkZeroModulo = function (element) { return element % width === 0; };
     return !tetrominoesREF[tetrominoIndex][orientation > 0 ? orientation - 1 : 3].map(function (position) { return (position + currentPosition); }).some(checkZeroModulo);
 };
@@ -231,6 +240,7 @@ var moveDown = function () { return __awaiter(void 0, void 0, void 0, function (
             currentPosition = Math.abs(Math.floor(Math.random() * width - 4));
             randomSelectTetromino();
             undraw();
+            checkForCompleteRowsAndScore();
             draw();
         }
         return [2 /*return*/];
@@ -292,7 +302,7 @@ process.stdin.on('keypress', function (ch, key) {
         }
     }
     else if (key.name === 'down') {
-        if (checkCanRotatLeft()) {
+        if (checkCanRotateLeft()) {
             undraw();
             if (orientation > 0) {
                 orientation = orientation - 1;
