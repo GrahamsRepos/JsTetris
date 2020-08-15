@@ -82,7 +82,6 @@ var iTetromino = [
 var orientation = 0;
 var tetrominoesREF = [lTetromino, zTetromino, tTetromino, oTetromino, iTetromino, lmirrTetromino];
 var currentPosition = 0; //Math.abs(Math.floor(Math.random()*width-4));
-var shift = currentPosition;
 var tetrominoIndex = Math.floor(Math.random() * tetrominoesREF.length);
 var currentTetromino = tetrominoesREF[tetrominoIndex][orientation];
 var currentColor = "\x1b[31m";
@@ -96,6 +95,7 @@ for (var i = 0; i < noElements; i++) {
 }
 var printArray = function () {
     console.log('\n');
+    checkForCompleteRowsAndScore();
     var i = 0;
     var currRow = 0;
     while (i < noElements - 1) {
@@ -112,11 +112,12 @@ var printArray = function () {
         i += width;
         currRow += 1;
     }
+    console.log('\n');
+    console.log("score: " + score);
     //getMostRightPosition()
     // checkOverlapVertical();
 };
 var randomSelectTetromino = function () {
-    shift = currentPosition;
     tetrominoIndex = Math.floor(Math.random() * tetrominoesREF.length);
     currentTetromino = tetrominoesREF[tetrominoIndex][orientation];
     setRandomColor();
@@ -193,6 +194,26 @@ var hasVerticalFill = function () {
     }
     return hasVerticalFill;
 };
+//---------------------------------------------------------------------
+//Scoring Method - Checks for filled horizontal rows , removes the row from the array and updates the score
+//----------------------------------------------------------------------
+var checkForCompleteRowsAndScore = function () {
+    for (var row = 0; row < height; row++) {
+        var hasFullRow = true;
+        for (var pos = row * width; pos < row * width + width; pos++) {
+            if (array[pos].includes(whitespacesymbol)) {
+                hasFullRow = false;
+            }
+        }
+        if (hasFullRow) {
+            score += 1;
+            array.splice(row * width, width);
+            for (var i = 0; i < width; i++) {
+                array.unshift(whitespacesymbol);
+            }
+        }
+    }
+};
 //Used to shift the teromino down
 var moveDown = function () { return __awaiter(void 0, void 0, void 0, function () {
     var overlap;
@@ -217,30 +238,6 @@ var moveDown = function () { return __awaiter(void 0, void 0, void 0, function (
 }); };
 var timerID = setInterval(moveDown, speed);
 var started = true;
-// readline.emitKeypressEvents(process.stdin);
-// process.stdin.setRawMode(true);
-//
-// process.stdin.on('keypress', (str, key) => {
-//     if (key.ctrl && key.name === 'c') {
-//         process.exit();
-//     } else {
-//
-//         if(key.name==="down")
-//             console.log("Blah")
-//             orientation+=1;
-//         }
-// });
-// let timerId:NodeJS.Timeout;
-// if(!started){
-//         started = true;
-//         timerId = setInterval(()=>{
-//             moveDown();
-//         },200);
-// }else{
-//         // @ts-ignore
-//     clearInterval(timerId);
-//         started =false;
-// }
 //Gets the current tetromino square closest to the right
 var getMostRightPosition = function () {
     var maxIndex = 0;
@@ -251,8 +248,8 @@ var getMostRightPosition = function () {
             maxIndex = position + currentPosition;
         }
     });
-    console.log(maxModulo);
-    console.log(maxIndex);
+    //console.log(maxModulo);
+    //console.log(maxIndex);
     return maxModulo;
     // console.log(width+maxIndex);
 };
@@ -265,12 +262,11 @@ var getMostLeftPosition = function () {
             minIndex = position + currentPosition;
         }
     });
-    console.log(minModulo);
-    console.log(minIndex);
+    //console.log(minModulo);
+    //console.log(minIndex);
     return minModulo;
     // console.log(width+maxIndex);
 };
-// make `process.stdin` begin emitting "keypress" events
 var keypress = require('keypress');
 keypress(process.stdin);
 var currentkey = '';

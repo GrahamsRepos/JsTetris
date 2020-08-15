@@ -1,6 +1,8 @@
+export type terominoOrientation = [number,number,number,number]
 export type tetromino = [
-    [number,number,number,number],
-    [number,number,number,number],
-    [number,number,number,number],
-    [number,number,number,number]
+    terominoOrientation,
+    terominoOrientation,
+    terominoOrientation,
+    terominoOrientation
 ]
+

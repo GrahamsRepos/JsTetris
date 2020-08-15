@@ -1,4 +1,4 @@
-import {tetromino} from "./types";
+import {tetromino,terominoOrientation} from "./types";
 
 let symbol:string = '\u2584' //The blocks that make up the teromino
 let whitespacesymbol:string = '.'
@@ -52,11 +52,10 @@ let score:number = 0;
 
     let orientation = 0
     const tetrominoesREF:tetromino[] = [lTetromino,zTetromino,tTetromino,oTetromino,iTetromino,lmirrTetromino]
-     let currentPosition:number = 0 //Math.abs(Math.floor(Math.random()*width-4));
-    let shift = currentPosition;
+     let currentPosition:0|1|2|3 = 0 //Math.abs(Math.floor(Math.random()*width-4));
     let tetrominoIndex:number =Math.floor(Math.random() * tetrominoesREF.length);
-    let currentTetromino =tetrominoesREF[tetrominoIndex][orientation]
-    let currentColor="\x1b[31m";
+    let currentTetromino:terominoOrientation =tetrominoesREF[tetrominoIndex][orientation]
+    let currentColor:string="\x1b[31m";
 
     //--------------------------------------
     //Console Tetris
@@ -68,6 +67,7 @@ let score:number = 0;
     }
     const printArray = ()=>{
         console.log('\n');
+        checkForCompleteRowsAndScore();
         let i = 0;
         let currRow = 0;
         while(i<noElements-1){
@@ -83,12 +83,13 @@ let score:number = 0;
             i+=width;
             currRow+=1;
         }
+        console.log('\n');
+        console.log(`score: ${score}`);
         //getMostRightPosition()
        // checkOverlapVertical();
     }
 
     const randomSelectTetromino = ()=>{
-        shift=currentPosition;
         tetrominoIndex = Math.floor(Math.random() * tetrominoesREF.length)
         currentTetromino = tetrominoesREF[tetrominoIndex][orientation]
         setRandomColor();
@@ -177,6 +178,26 @@ let score:number = 0;
         }
         return hasVerticalFill;
     }
+     //---------------------------------------------------------------------
+    //Scoring Method - Checks for filled horizontal rows , removes the row from the array and updates the score
+    //----------------------------------------------------------------------
+    const checkForCompleteRowsAndScore =()=>{
+        for(let row=0;row<height;row++){
+            let hasFullRow = true;
+            for(let pos = row*width;pos<row*width+width;pos++){
+                if(array[pos].includes(whitespacesymbol)){
+                    hasFullRow = false;
+                }
+            }
+            if(hasFullRow){
+                score +=1;
+                array.splice(row*width,width);
+                for(let i = 0;i<width;i++){
+                    array.unshift(whitespacesymbol);
+                }
+            }
+        }
+    }
 
 
 
@@ -193,7 +214,7 @@ let score:number = 0;
                 }
             }
         else{
-            currentPosition = Math.abs(Math.floor(Math.random()*width-4));
+            currentPosition = <0|1|2|3>Math.abs(Math.floor(Math.random()*width-4));
             randomSelectTetromino();
             undraw()
             draw();
@@ -207,36 +228,6 @@ let score:number = 0;
 let timerID = setInterval(moveDown,speed);
 let started = true;
 
-// readline.emitKeypressEvents(process.stdin);
-// process.stdin.setRawMode(true);
-//
-// process.stdin.on('keypress', (str, key) => {
-//     if (key.ctrl && key.name === 'c') {
-//         process.exit();
-//     } else {
-//
-//         if(key.name==="down")
-//             console.log("Blah")
-//             orientation+=1;
-//         }
-// });
-
-
-    // let timerId:NodeJS.Timeout;
-    // if(!started){
-    //         started = true;
-    //         timerId = setInterval(()=>{
-    //             moveDown();
-    //         },200);
-    // }else{
-    //         // @ts-ignore
-    //     clearInterval(timerId);
-    //         started =false;
-    // }
-
-
-
-
 
 //Gets the current tetromino square closest to the right
 const getMostRightPosition = ()=>{
@@ -248,8 +239,8 @@ const getMostRightPosition = ()=>{
             maxIndex = position + currentPosition
         }
     })
-    console.log(maxModulo);
-    console.log(maxIndex);
+    //console.log(maxModulo);
+    //console.log(maxIndex);
     return maxModulo;
     // console.log(width+maxIndex);
 }
@@ -263,13 +254,13 @@ const getMostLeftPosition =()=>{
             minIndex = position + currentPosition
         }
     })
-    console.log(minModulo);
-    console.log(minIndex);
+    //console.log(minModulo);
+    //console.log(minIndex);
     return minModulo;
     // console.log(width+maxIndex);
 }
 
-// make `process.stdin` begin emitting "keypress" events
+
 
 
 
